@@ -1,0 +1,127 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String @unique
+  desc String 
+  price Float
+  discountRate Float @default(0)
+  stock Int @default(0)
+  triggerQuantity Int @default(5)
+  category Category @default(GENERAL)
+  company Company @default(EMMY)
+  color String[]
+  freeShipping Boolean @default(false)
+  img String
+  numOfReviews Int @default(0)
+  avgRating Float @default(3)
+  reviews Review[]
+}
+
+model User {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  firstname String
+  lastname String
+  image String?
+  email String @unique
+  phone String?
+  address Address?
+  role Role @default(USER)
+  review Review[]
+  order Order?
+}
+
+model Review {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  rating Int 
+  user User @relation(fields: [userId], references: [id])
+  userId String @db.ObjectId
+  product Product @relation(fields: [productId], references: [id])
+  productId String @db.ObjectId
+}
+
+model Order {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  tax Float
+  shippingFee Float @default(0)
+  subTotal Float
+  total Float
+  orders OrderItem[]
+  deliveryOption DeliveryOption @default(PICK_UP)
+  deliveryAddress Address?
+  status PaymentAndDeliveryStatus @default(PENDING)
+  clientSecret String?
+  paymentIntent String?
+  user User? @relation(fields: [userId], references: [id])
+  userId String? @db.ObjectId @unique
+}
+
+model Purchase {
+   id String @id @default(auto()) @map("_id") @db.ObjectId
+   products SingleProduct[]
+   totalCost Float
+}
+
+enum Category {
+  FASHION
+  ELECTRONICS
+  COMPUTING
+  KITCHEN
+  HOME
+  GENERAL
+}
+
+enum Company {
+  MARCOS
+  ARGOS
+  LIDL
+  EMMY
+}
+
+type Address {
+  street String
+  city String
+  state String
+  zip String?
+}
+
+type OrderItem {
+  product String @db.ObjectId
+  productName String 
+  productImg String
+  quantity Int
+  price Float
+}
+
+type SingleProduct {
+  productName String
+  unitCost Float
+  quantity Int
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum DeliveryOption {
+  PICK_UP
+  HOME_DELIVERY
+}
+
+enum PaymentAndDeliveryStatus {
+  PENDING
+  PAID
+  FAILED
+  DELIVERED
+}
